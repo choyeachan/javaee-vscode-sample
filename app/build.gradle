@@ -3,6 +3,8 @@ plugins {
     id 'org.gretty' version '3.0.1'
 }
 
+def webappVersion = '1.0'
+
 repositories {
     jcenter()
 }
@@ -30,8 +32,54 @@ dependencies {
 gretty {
     servletContainer = 'tomcat9'
     httpPort = 8080
-    contextPath = '/app'
+    contextPath = "/${rootProject.name}"
     enableNaming = true
+}
+
+jar {
+    manifest {
+        attributes 'Build-by': 'Yechan Cho',
+                    'Implementation-Vendor':'home',
+                    'Implementation-Title' : rootProject.name.toUpperCase(),
+                    'Implementation-Version' : webappVersion
+    }
+    archiveBaseName = rootProject.name
+    exclude("log4j2.xml",rootProject.name)
+
+}
+
+war {
+    archiveBaseName = rootProject.name
+}
+
+task dist(type: Copy, dependsOn: 'jar') {
+    FileCollection gradlelibs = configurations.default - configurations.providedCompile
+
+    into "${rootProject.projectDir}/dist/${rootProject.name}"
+
+    into('WEB-INF/lib'){
+        from gradlelibs
+        from "build/libs/${rootProject.name}.jar"
+    }
+
+    doLast {
+        List libList = []
+
+        gradlelibs.each {
+            File file -> libList.push file.name
+        }
+
+        FileTree distlibs = fileTree("${rootProject.projectDir}/dist/${rootProject.name}/WEB-INF/lib"){
+            exclude "${rootProject.name}.jar"
+        }
+
+        distlibs.each {
+            File file ->
+                if(!libList.contains(file.name)){
+                    delete file
+                }
+        }
+    }
 }
 
 task runJava(dependsOn: 'testClasses'){

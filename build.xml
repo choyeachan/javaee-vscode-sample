@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project>
+
+<project name="210806" default="[1]dist" basedir=".">
+	<property name="webapp" location="app/src/main/webapp"/>
+	<property name="resources" location="app/src/main/resources"/>
+	<property name="dist_prj" location="dist/210806"/>
+
+	<target name="init">
+		<tstamp/>
+	</target>
+
+	<target name="[1]dist" depends="init">
+		<exec dir="${basedir}" executable="./gradlew">
+			<arg value="dist"/>
+			<arg value="-q"/>
+		</exec>
+
+		<copy todir="${dist_prj}">
+			<fileset dir="${webapp}">
+				<exclude name="META-INF"/>
+				<exclude name="META-INF/**/*"/>
+				<exclude name="WEB-INF/web.xml*"/>
+			</fileset>
+		</copy>
+
+
+		<copy todir="${dist_prj}/WEB-INF/classes">
+			<fileset dir="${resources}">
+				<exclude name="cho"/>
+				<exclude name="cho/**/*"/>
+			</fileset>
+		</copy>
+
+	</target>
+</project>
+
