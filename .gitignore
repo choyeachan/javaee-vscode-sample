@@ -1,0 +1,10 @@
+**/.classpath
+**/.project
+**/.settings
+**/.factorypath
+.gradle
+app/tomcat.8080
+app/bin
+app/build
+*.swp
+

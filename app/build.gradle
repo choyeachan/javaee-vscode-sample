@@ -1,0 +1,111 @@
+plugins {
+    id 'war'
+    id 'org.gretty' version '3.0.1'
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    
+    compileOnly 'javax.servlet:javax.servlet-api:4.0.1'
+    compileOnly 'javax.servlet.jsp:javax.servlet.jsp-api:2.3.3'
+
+    implementation 'commons-io:commons-io:2.8.0'
+    implementation 'org.glassfish:javax.json:1.1.4'
+    implementation 'org.apache.logging.log4j:log4j-api:2.14.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.14.1'
+
+    implementation files('lib/commandbridge-2.1.jar')
+
+    annotationProcessor 'org.apache.logging.log4j:log4j-api:2.14.1'
+    annotationProcessor 'org.apache.logging.log4j:log4j-core:2.14.1'
+
+    gretty 'org.apache.tomcat:tomcat-dbcp:9.0.13'
+}
+
+gretty {
+    servletContainer = 'tomcat9'
+    httpPort = 8080
+    contextPath = '/app'
+    enableNaming = true
+}
+
+task runJava(dependsOn: 'testClasses'){
+    if (project.hasProperty('fileName')){
+        doLast {
+            def projectDirLength = projectDir.absolutePath.length()
+            def javaSrcDir      = fileName.substring projectDirLength + 1, projectDirLength + 14
+            def javaNames       = fileName.substring(projectDirLength + 15, fileName.length() - 5).split '/'
+            def workingDirPath  = "${project.buildDir}/classes/java/main"
+            def classpaths      = []
+
+            if (javaSrcDir == 'src/test/java'){
+                classpaths.push "${project.buildDir}/classes/java/test"
+                workingDirPath = "${project.buildDir}/classes/java/tset"
+            }
+
+            if (file("${project.buildDir}/classes/java/main").exists()){
+                classpaths.push "${project.buildDir}/classes/java/main"
+            }
+
+            configurations.default.each {
+                File file -> classpaths.push file.absolutePath
+            }
+
+            exec {
+                workingDir workingDirPath
+                commandLine 'java'
+                args '-cp',
+                    classpaths.join(':'),
+                    javaNames.join('.')
+            }
+        }
+    }
+}
+
+task runJshell {
+    if(project.hasProperty("fileName")){
+        doLast{
+            def classpaths = []
+
+            if(file("${project.buildDir}/classes/java/main").exists()){
+                classpaths.push "${project.buildDir}/classes/java/main"
+            }
+
+            configurations.default.each {
+                file -> classpaths.push file.absolutePath
+            }
+
+            exec {
+                workingDir projectDir
+                commandLine 'jshell'
+                args '-q',
+                    '--class-path',
+                    classpaths.join(':'),
+                    fileName
+            }
+
+        }
+    }
+
+}
+
+task writeJshcp {
+    doLast {
+        def classpaths = []
+
+        if(file("${project.buildDir}/classes/java/main").exists()){
+            classpaths.push "${project.buildDir}/classes/java/main"
+        }
+
+        configurations.default.each {
+            file -> classpaths.push file.absolutePath
+        }
+
+        new File(project.buildDir, 'jschp.jsh').text = "/env --class-path ${classpaths.join(':')}"
+    }
+}

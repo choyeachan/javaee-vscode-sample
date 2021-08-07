@@ -1,0 +1,29 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "[app] Tomcat Start",
+			"type": "shell",
+			"command": "${workspaceRoot}/gradlew tomcatStart",
+			"problemMatcher": "$msCompile",
+		},
+		{
+			"label": "[app] Tomcat Debug",
+			"type": "shell",
+			"command": "${workspaceRoot}/gradlew tomcatStartDebug",
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "[app] Tomcat Stop",
+			"type": "shell",
+			"command": "${workspaceRoot}/gradlew tomcatStop",
+			"isBackground": true,
+			"presentation": {
+				"reveal": "never"
+			},
+			"problemMatcher": []
+		}
+	]
+}
